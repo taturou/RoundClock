@@ -61,6 +61,20 @@ struct {
     {120, 24, s_round_data_min_sec, sizeof(s_round_data_min_sec) / sizeof(RoundData), GTextAlignmentRight},
 };
 
+#define TEXT_SLASH          (0)
+#define TEXT_COLON1         (1)
+#define TEXT_COLON2         (2)
+#define MAX_TEXT_LAYER      (3)
+static TextLayer *s_text_layer[MAX_TEXT_LAYER];
+struct {
+    uint16_t origin_x;
+    char *str;
+} s_text_data[MAX_TEXT_LAYER] = {
+    {20, "/"},
+    {96, ":"},
+    {120, ":"}
+};
+
 static void s_tick_handler(struct tm *tick_time, TimeUnits units_changed) {
     time_t now_time = time(NULL);
     struct tm now_tm;
@@ -97,6 +111,19 @@ static void s_window_load(Window *window) {
         );
         layer_add_child(window_layer, round_layer_get_layer(s_round_layer[i]));
         APP_LOG(APP_LOG_LEVEL_DEBUG, "x:%d, w:%d", (window_bounds.size.w / MAX_ROUND_LAYER) * i, window_bounds.size.w / MAX_ROUND_LAYER);
+    }
+
+    // /
+    uint16_t origin_y = (window_bounds.size.h / 2) - 12;
+    GSize size = {20, 24};
+    
+    for (int i = 0; i < MAX_TEXT_LAYER; i++) {
+        s_text_layer[i] = text_layer_create((GRect){.origin = {s_text_data[i].origin_x, origin_y}, .size = size});
+        text_layer_set_text(s_text_layer[i], s_text_data[i].str);
+        text_layer_set_background_color(s_text_layer[i], GColorClear);
+        text_layer_set_text_color(s_text_layer[i], GColorWhite);
+        text_layer_set_font(s_text_layer[i], fonts_get_system_font(FONT_KEY_GOTHIC_18));
+        layer_add_child(window_layer, text_layer_get_layer(s_text_layer[i]));
     }
 
     tick_timer_service_subscribe(SECOND_UNIT, s_tick_handler);
