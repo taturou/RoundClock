@@ -92,6 +92,7 @@ static void s_window_load(Window *window) {
     Layer *window_layer = window_get_root_layer(window);
     GRect window_bounds = layer_get_frame(window_layer);
 
+    // round_layer
     for (int i = 0; i < MAX_ROUND_LAYER; i++) {
         s_round_layer[i] = round_layer_create(
             (GRect){
@@ -113,7 +114,7 @@ static void s_window_load(Window *window) {
         APP_LOG(APP_LOG_LEVEL_DEBUG, "x:%d, w:%d", (window_bounds.size.w / MAX_ROUND_LAYER) * i, window_bounds.size.w / MAX_ROUND_LAYER);
     }
 
-    // /
+    // text_layer
     uint16_t origin_y = (window_bounds.size.h / 2) - 12;
     GSize size = {20, 24};
     
@@ -126,6 +127,7 @@ static void s_window_load(Window *window) {
         layer_add_child(window_layer, text_layer_get_layer(s_text_layer[i]));
     }
 
+    // tick
     tick_timer_service_subscribe(SECOND_UNIT, s_tick_handler);
 }
 
