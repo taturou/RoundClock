@@ -3,7 +3,7 @@
 
 #define NUM_SECTIONS    (1)
 #define HEADER_HIGHT    (0)
-#define MARGIN_CELLS    (4)
+#define MARGIN_CELLS    (5)
 
 typedef struct round_layer {
     MenuLayer *layer;
@@ -19,6 +19,7 @@ static int16_t s_get_cell_hight_callback(struct MenuLayer *menu_layer, MenuIndex
 static int16_t s_get_header_height_callback(struct MenuLayer *menu_layer, uint16_t section_index, void *callback_context);
 static void s_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_index, void *callback_context);
 static void s_draw_separator_callback(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_index, void *callback_context);
+static void s_set_selected_0(void *data);
 
 RoundLayer *round_layer_create(GRect frame, int16_t cell_hight, const RoundData *data, uint16_t data_size, GTextAlignment alignment) {
     RoundLayer *round = NULL;
@@ -44,7 +45,7 @@ RoundLayer *round_layer_create(GRect frame, int16_t cell_hight, const RoundData 
                         .get_cell_height = s_get_cell_hight_callback,
                         .get_header_height = s_get_header_height_callback,
                         .draw_row = s_draw_row_callback,
-                        .draw_separator = s_draw_separator_callback
+                        .draw_separator = s_draw_separator_callback,
                     });            
             } else {
                 menu_layer_destroy(round->layer);
@@ -75,33 +76,55 @@ Layer *round_layer_get_layer(RoundLayer *round) {
     return menu_layer_get_layer(round->layer);
 }
 
-void round_layer_set_selected_index(RoundLayer *round, uint16_t index) {
-    menu_layer_set_selected_index(
-        round->layer,
-        (MenuIndex){
-            0,
-            (index % round->data_size) + MARGIN_CELLS},
-        MenuRowAlignCenter,
-        true);
+void round_layer_set_selected_index(RoundLayer *round, uint16_t index, bool animated) {
+    if ((index == 0) && (animated == true)) {
+        index = round->data_size;
+
+        menu_layer_set_selected_index(
+            round->layer,
+            (MenuIndex){
+                0,
+                index + MARGIN_CELLS},
+            MenuRowAlignCenter,
+            true);
+
+        app_timer_register(500, s_set_selected_0, round);
+    } else {
+        menu_layer_set_selected_index(
+            round->layer,
+            (MenuIndex){
+                0,
+                index + MARGIN_CELLS},
+            MenuRowAlignCenter,
+            animated);
+    }
 }
 
 static uint16_t s_get_num_sections_callback(struct MenuLayer *menu_layer, void *callback_context) {
+    (void)menu_layer;
+    (void)callback_context;
     return NUM_SECTIONS;
 }
 
 static uint16_t s_get_num_rows_callback(struct MenuLayer *menu_layer, uint16_t section_index, void *callback_context) {
+    (void)menu_layer;
     RoundLayer *round = (RoundLayer*)callback_context;
     
     return round->data_size + (MARGIN_CELLS * 2);
 }
 
 static int16_t s_get_cell_hight_callback(struct MenuLayer *menu_layer, MenuIndex *cell_index, void *callback_context) {
+    (void)menu_layer;
+    (void)cell_index;
     RoundLayer *round = (RoundLayer*)callback_context;
     
     return round->cell_hight;
 }
     
 static int16_t s_get_header_height_callback(struct MenuLayer *menu_layer, uint16_t section_index, void *callback_context) {
+    (void)menu_layer;
+    (void)section_index;
+    (void)callback_context;
     return HEADER_HIGHT;
 }
 
@@ -134,5 +157,21 @@ static void s_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuInde
 }
 
 static void s_draw_separator_callback(GContext *ctx, const Layer *cell_layer, MenuIndex *cell_index, void *callback_context) {
-    /* do nothing */
+    (void)ctx;
+    (void)cell_layer;
+    (void)cell_index;
+    (void)callback_context;
+    /* do nothing draw */
+}
+
+static void s_set_selected_0(void *data) {
+    RoundLayer *round = (RoundLayer*)data;
+
+    menu_layer_set_selected_index(
+        round->layer,
+        (MenuIndex){
+            0,
+            0 + MARGIN_CELLS},
+        MenuRowAlignCenter,
+        false);
 }

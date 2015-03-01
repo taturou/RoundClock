@@ -80,12 +80,12 @@ static void s_tick_handler(struct tm *tick_time, TimeUnits units_changed) {
     struct tm now_tm;
     memcpy(&now_tm, localtime(&now_time), sizeof(struct tm));
 
-    round_layer_set_selected_index(s_round_layer[MONTH], now_tm.tm_mon);
-    round_layer_set_selected_index(s_round_layer[DAY], now_tm.tm_mday - 1);
-    round_layer_set_selected_index(s_round_layer[WDAY], now_tm.tm_wday);
-    round_layer_set_selected_index(s_round_layer[HOUR], now_tm.tm_hour);
-    round_layer_set_selected_index(s_round_layer[MIN], now_tm.tm_min);
-    round_layer_set_selected_index(s_round_layer[SEC], now_tm.tm_sec);
+    round_layer_set_selected_index(s_round_layer[MONTH], now_tm.tm_mon, true);
+    round_layer_set_selected_index(s_round_layer[DAY], now_tm.tm_mday - 1, true);
+    round_layer_set_selected_index(s_round_layer[WDAY], now_tm.tm_wday, true);
+    round_layer_set_selected_index(s_round_layer[HOUR], now_tm.tm_hour, true);
+    round_layer_set_selected_index(s_round_layer[MIN], now_tm.tm_min, true);
+    round_layer_set_selected_index(s_round_layer[SEC], now_tm.tm_sec, true);
 }
 
 static void s_window_load(Window *window) {
