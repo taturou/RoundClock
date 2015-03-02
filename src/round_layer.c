@@ -4,6 +4,7 @@
 #define NUM_SECTIONS    (1)
 #define HEADER_HIGHT    (0)
 #define MARGIN_CELLS    (5)
+#define DELAY_SELECTED0 (500)
 
 typedef struct round_layer {
     MenuLayer *layer;
@@ -11,6 +12,7 @@ typedef struct round_layer {
     RoundData *data;
     uint16_t data_size;
     GTextAlignment alignment;
+    AppTimer *timer;
 } RoundLayer;
 
 static uint16_t s_get_num_sections_callback(struct MenuLayer *menu_layer, void *callback_context);
@@ -77,27 +79,22 @@ Layer *round_layer_get_layer(RoundLayer *round) {
 }
 
 void round_layer_set_selected_index(RoundLayer *round, uint16_t index, bool animated) {
-    if ((index == 0) && (animated == true)) {
+    index = index % round->data_size;
+
+    // to smooth rounding
+    // The index is selected to the max once and will be moved to 0 at 500 milliseconds later.
+    if ((index == 0)
+        && (animated == true)
+        && ((menu_layer_get_selected_index(round->layer).row - MARGIN_CELLS) != index)) {
         index = round->data_size;
 
-        menu_layer_set_selected_index(
-            round->layer,
-            (MenuIndex){
-                0,
-                index + MARGIN_CELLS},
-            MenuRowAlignCenter,
-            true);
-
-        app_timer_register(500, s_set_selected_0, round);
-    } else {
-        menu_layer_set_selected_index(
-            round->layer,
-            (MenuIndex){
-                0,
-                index + MARGIN_CELLS},
-            MenuRowAlignCenter,
-            animated);
+        if (round->timer != NULL) {
+            app_timer_cancel(round->timer);
+        }
+        round->timer = app_timer_register(DELAY_SELECTED0, s_set_selected_0, round);
     }
+
+    menu_layer_set_selected_index(round->layer, (MenuIndex){0, index + MARGIN_CELLS}, MenuRowAlignCenter, true);
 }
 
 static uint16_t s_get_num_sections_callback(struct MenuLayer *menu_layer, void *callback_context) {
@@ -142,7 +139,7 @@ static void s_draw_row_callback(GContext *ctx, const Layer *cell_layer, MenuInde
     
     GRect frame = layer_get_bounds(cell_layer);
     if (round->alignment == GTextAlignmentRight) {
-        frame.size.w -= 3;
+        frame.size.w -= 3; // magic number
     }
 
     graphics_context_set_text_color(ctx, GColorBlack);
@@ -161,17 +158,19 @@ static void s_draw_separator_callback(GContext *ctx, const Layer *cell_layer, Me
     (void)cell_layer;
     (void)cell_index;
     (void)callback_context;
-    /* do nothing draw */
+    /* do nothing to draw */
 }
 
 static void s_set_selected_0(void *data) {
     RoundLayer *round = (RoundLayer*)data;
 
+    round->timer = NULL;
+
     menu_layer_set_selected_index(
         round->layer,
         (MenuIndex){
             0,
-            0 + MARGIN_CELLS},
+            MARGIN_CELLS},
         MenuRowAlignCenter,
         false);
 }

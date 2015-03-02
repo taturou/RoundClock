@@ -3,6 +3,7 @@
 
 static Window *s_window;
 
+// definitions for round_layer
 #define MONTH               (0)
 #define DAY                 (1)
 #define WDAY                (2)
@@ -61,6 +62,7 @@ struct {
     {120, 24, s_round_data_min_sec, sizeof(s_round_data_min_sec) / sizeof(RoundData), GTextAlignmentRight},
 };
 
+// definitions for clock
 #define TEXT_SLASH          (0)
 #define TEXT_COLON1         (1)
 #define TEXT_COLON2         (2)
@@ -75,7 +77,7 @@ struct {
     {120, ":"}
 };
 
-static void s_tick_handler(struct tm *tick_time, TimeUnits units_changed) {
+static void s_update_rounds_to_now_time(struct tm *tick_time, TimeUnits units_changed) {
     time_t now_time = time(NULL);
     struct tm now_tm;
     memcpy(&now_tm, localtime(&now_time), sizeof(struct tm));
@@ -97,11 +99,11 @@ static void s_window_load(Window *window) {
         s_round_layer[i] = round_layer_create(
             (GRect){
                 .origin = {
-                    s_round_data[i].origin_x, // (window_bounds.size.w / MAX_ROUND_LAYER) * i,
+                    s_round_data[i].origin_x,
                     0
                 },
                     .size = {
-                    s_round_data[i].size_w, // window_bounds.size.w / MAX_ROUND_LAYER,
+                    s_round_data[i].size_w,
                     window_bounds.size.h
                 }
             },
@@ -128,7 +130,7 @@ static void s_window_load(Window *window) {
     }
 
     // tick
-    tick_timer_service_subscribe(SECOND_UNIT, s_tick_handler);
+    tick_timer_service_subscribe(SECOND_UNIT, s_update_rounds_to_now_time);
 }
 
 static void s_window_unload(Window *window) {
